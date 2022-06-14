@@ -1,0 +1,31 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "./generated/prisma-client-js"
+  binaryTargets   = ["native", "linux-musl"]
+  previewFeatures = ["extendedIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id        String    @id @default(cuid())
+  name      String    @db.VarChar(255)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime? @updatedAt @db.Timestamptz(3)
+}
+
+model Workflow {
+  id         String    @id @default(cuid())
+  internalId String    @db.VarChar(50)
+  name       String    @db.VarChar(255)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime? @updatedAt @db.Timestamptz(3)
+
+  @@index([internalId])
+}
