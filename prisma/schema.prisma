@@ -5,7 +5,7 @@ generator client {
   provider        = "prisma-client-js"
   output          = "./generated/prisma-client-js"
   binaryTargets   = ["native", "linux-musl"]
-  previewFeatures = ["extendedIndexes"]
+  previewFeatures = ["extendedIndexes", "referentialIntegrity"]
 }
 
 datasource db {
@@ -21,11 +21,75 @@ model Workspace {
 }
 
 model Workflow {
-  id         String    @id @default(cuid())
-  internalId String    @db.VarChar(50)
-  name       String    @db.VarChar(255)
-  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt  DateTime? @updatedAt @db.Timestamptz(3)
+  id        String            @id @default(cuid())
+  createdAt DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime?         @updatedAt @db.Timestamptz(3)
+  locked    Boolean?          @default(false)
+  // Relations
+  versions  WorkflowVersion[]
+}
 
-  @@index([internalId])
+model WorkflowVersion {
+  id          String              @id @default(cuid())
+  iId         String              @unique @db.VarChar(100)
+  name        String              @db.VarChar(255)
+  description String?             @db.VarChar(1000)
+  version     Int                 @db.Integer
+  draft       Boolean?            @default(true)
+  active      Boolean?            @default(false)
+  createdAt   DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime?           @updatedAt @db.Timestamptz(3)
+  // Relations
+  workflow    Workflow            @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId  String
+  points      PointsOnWorkflows[]
+
+  @@index([iId])
+}
+
+model Point {
+  id          String              @id @default(cuid())
+  iId         String              @unique @db.VarChar(100)
+  name        String              @db.VarChar(255)
+  description String?             @db.VarChar(1000)
+  createdAt   DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime?           @updatedAt @db.Timestamptz(3)
+  // Relations
+  workflows   PointsOnWorkflows[]
+  pointData   PointData?
+
+  @@index([iId])
+}
+
+model PointsOnWorkflows {
+  workflow   WorkflowVersion @relation(fields: [workflowId], references: [id])
+  workflowId String
+  point      Point           @relation(fields: [pointId], references: [id])
+  pointId    String
+  assignedAt DateTime        @default(now())
+
+  @@id([workflowId, pointId])
+}
+
+model PointData {
+  id          String       @id @default(cuid())
+  pointType   PointType?
+  processType ProcessType?
+  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime?    @updatedAt @db.Timestamptz(3)
+  // Relations
+  point       Point        @relation(fields: [pointId], references: [id])
+  pointId     String       @unique
+}
+
+enum PointType {
+  SYNC
+  TASK
+  CONDITION
+}
+
+enum ProcessType {
+  AUTOMATIC
+  MANUAL
+  AUTOMATIC_MANUAL
 }

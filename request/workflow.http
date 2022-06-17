@@ -1,0 +1,26 @@
+### Fetch all workflow
+GET http://localhost:4000/api/workflow
+Accept: application/json
+
+### Create Workflow
+POST http://localhost:4000/api/workflow
+Content-Type: application/json
+Accept: application/json
+
+{
+
+}
+
+### Update workflow
+PATCH http://localhost:4000/api/workflow/cl4igm2r3000013qfksrm4xmr
+Content-Type: application/json
+Accept: application/json
+
+{
+  "locked": true
+}
+
+### Delete workflow
+DELETE http://localhost:4000/api/workflow/cl4ib68sq001275qf78qnyzp2
+Content-Type: application/json
+Accept: application/json
